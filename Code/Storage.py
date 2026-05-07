@@ -71,7 +71,7 @@ class Storage():
 
 
     def display_storage(self):
-        print(f"""{self.storage[0][0]}   {self.storage[1][0]}   {self.storage[2][0]}
+        print(f"""{self.storage[0][0]}    {self.storage[1][0]}   {self.storage[2][0]}
 {self.storage[0][1]}    {self.storage[1][1]}   {self.storage[2][1]} \n\n
 {self.storage[3][0]}    {self.storage[4][0]}   {self.storage[5][0]} 
 {self.storage[3][1]}    {self.storage[4][1]}   {self.storage[5][1]} \n\n
@@ -81,8 +81,22 @@ class Storage():
 
 if __name__ == "__main__":
     s = Storage()
-    _ , empty_postion = s.find_empty_position()
-    s.place_box(empty_postion, Box())
-    s.display_storage()
-    print(s.take_empty())
-    s.display_storage()
+    
+    while True:
+        command = input("Command: Place or Get\n")
+        if command == "Place":
+            print(f"Placing")
+            _ , empty_postion = s.find_empty_position()
+            if empty_postion == 0:
+                print("Storage Full")
+                continue
+            else:
+                s.place_box(empty_postion, Box("Rock"))
+        elif command == "Get":
+            print(f"Getting")
+            if not s.take_empty():
+                print("Out of enmpty boxes")
+                continue
+        else:
+            print("Command not found")
+        s.display_storage()
