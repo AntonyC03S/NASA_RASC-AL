@@ -268,11 +268,11 @@ def stop_m2():
 
 # M3: right vertical motor.
 def motor_3_down():
-    motor_reverse(M3A, M3B)
+    motor_forward(M3A, M3B)
 
 
 def motor_3_up():
-    motor_forward(M3A, M3B)
+    motor_reverse(M3A, M3B)
 
 
 def stop_m3():
@@ -312,9 +312,9 @@ def move_m2(direction):
 def move_m3(direction):
     """Move M3 up or down using the configured leveling speed."""
     if direction == "UP":
-        motor_forward(M3A, M3B, LEVEL_SPEED)
-    else:
         motor_reverse(M3A, M3B, LEVEL_SPEED)
+    else:
+        motor_forward(M3A, M3B, LEVEL_SPEED)
 
 
 def auto_level_vertical(direction):

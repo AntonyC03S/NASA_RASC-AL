@@ -97,6 +97,8 @@ if __name__ == "__main__":
             if not s.take_empty():
                 print("Out of enmpty boxes")
                 continue
+        elif command == "End":
+            break
         else:
             print("Command not found")
         s.display_storage()
