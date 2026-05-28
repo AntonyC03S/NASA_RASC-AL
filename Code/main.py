@@ -328,7 +328,9 @@ def auto_level_vertical(direction):
     Verify this logic on the physical mechanism. Depending on sensor mounting
     and motor polarity, the correction direction may need to be inverted.
     """
-    rh, lh = get_vertical_distances()
+    # rh, lh = get_vertical_distances()
+    rh = None
+    lh = None 
 
     # If sensors are unavailable, fall back to moving both motors together.
     if rh is None or lh is None:
