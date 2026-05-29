@@ -40,6 +40,12 @@ BACKUP_RUN_TIME = 3.0
 SENSOR_OUTPUT_ENABLED = False
 SENSOR_PRINT_INTERVAL = 0.25
 
+BOX_POSITION_PRESET = [(300,268), (300,180), (300,58),
+                       (210,268), (210,180), (210,58),
+                       (87,268), (87,180), (87,58)]
+
+EXTEND_LIMIT = (50, 195)
+
 
 # -----------------------------
 # I2C / VL53L0X configuration
@@ -157,6 +163,38 @@ def get_vertical_distances():
         return rh, lh
     except Exception:
         return None, None
+    
+def get_horizontal_distances():
+    """Return horizontal sensor readings as (horz_mm).
+
+    If sensor is missing or a read fails, returns (None).
+    """
+    hor_sensor = get_sensor_by_name("Horizontal")
+
+    if hor_sensor is None:
+        return None
+
+    try:
+        horz = get_distance(hor_sensor)
+        return horz
+    except Exception:
+        return None
+    
+def get_extender_distances():
+    """Return extender sensor readings as (ext_mm).
+
+    If sensor is missing or a read fails, returns (None).
+    """
+    ext_sensor = get_sensor_by_name("Extender")
+
+    if ext_sensor is None:
+        return None
+
+    try:
+        ext = get_distance(ext_sensor)
+        return ext
+    except Exception:
+        return None
 
 
 def read_tof_sensors():
@@ -354,6 +392,78 @@ def auto_level_vertical(direction):
         move_m2(direction)
         move_m3(direction)
 
+def box_position(box):
+    """
+
+    """
+    x_pos, y_pos = BOX_POSITION_PRESET[box-1]
+    _, vert_reading = get_vertical_distances()
+    hoz_reading = get_horizontal_distances()
+    hoz_in_place = None
+    vert_in_place = None
+    if hoz_reading is None:
+        stop_m4()
+        hoz_in_place = True
+    elif hoz_reading > y_pos+4:
+        right_m4()
+        hoz_in_place = False
+    elif hoz_reading < y_pos-4:
+        left_m4()
+        hoz_in_place = False
+    else: 
+        stop_m4()
+        hoz_in_place = True
+
+    if vert_reading is None:
+        stop_m2()
+        stop_m3()
+        vert_in_place = True
+    elif vert_reading > x_pos+6:
+        move_m2("DOWN")
+        move_m3("DOWN")
+        vert_in_place = False
+    elif vert_reading < x_pos-6:
+        move_m2("UP")
+        move_m3("UP")
+        vert_in_place = False
+    else: 
+        stop_m2()
+        stop_m3()
+        vert_in_place = True
+
+    if hoz_in_place and vert_in_place:
+        return True
+    else:
+        return False
+
+
+
+def box_extend(direction):
+    """
+
+    """
+    min, max = EXTEND_LIMIT
+    ext_reading = get_extender_distances()
+    at_location = None
+    if direction == "IN":
+        if ext_reading >= max: 
+            stop_m1()
+            at_location = True
+        else:
+            extend_m1()
+            at_location = False
+    elif direction == "OUT":
+        if ext_reading <= min: 
+            stop_m1()
+            at_location = True
+        else:
+            retract_m1()
+            at_location = False
+    else: 
+        stop_m1()
+        at_location = True
+
+    return at_location
 
 # ============================================================
 # INPUT / LIVE CONTROL HELPERS
@@ -443,6 +553,32 @@ def live_autolevel_motion(direction, label):
 
     while True:
         auto_level_vertical(direction)
+        last_sensor_print = maybe_print_live_sensors(last_sensor_print)
+
+        should_stop, typed = user_typed_stop(poll, typed)
+        if should_stop:
+            stop_all()
+            print("Stopped all motors")
+            break
+
+        time.sleep(0.02)
+
+def live_box_motion(box, label):
+    """"""
+    # print(label)
+    print("Moving to Box ", box)
+    print("Type S then Enter to stop.")
+
+    poll = uselect.poll()
+    poll.register(sys.stdin, uselect.POLLIN)
+
+    typed = ""
+    last_sensor_print = time.ticks_ms()
+
+    while True:
+
+        if box_position(box):
+            should_stop = True
         last_sensor_print = maybe_print_live_sensors(last_sensor_print)
 
         should_stop, typed = user_typed_stop(poll, typed)
@@ -615,9 +751,34 @@ def manual_menu():
             print("Sensors initialized =", len(tof_sensors))
             print("I2C scan =", i2c.scan())
 
+        elif cmd == "BOX1":
+            live_box_motion(1, "Moving to Box1")
+
+        elif cmd == "BOX2":
+            live_box_motion(2, "Moving to Box2")
+
+        elif cmd == "BOX3":
+            live_box_motion(3, "Moving to Box3")
+
+        elif cmd == "BOX4":
+            live_box_motion(4, "Moving to Box4")
+
+        elif cmd == "BOX5":
+            live_box_motion(5, "Moving to Box5")
+
+        elif cmd == "BOX6":
+            live_box_motion(6, "Moving to Box6")
+
+        elif cmd == "BOX7":
+            live_box_motion(7, "Moving to Box7")
+
+        elif cmd == "BOX8":
+            live_box_motion(8, "Moving to Box8")
+
+        elif cmd == "BOX9":
+            live_box_motion(9, "Moving to Box9")
         else:
             print("Invalid command")
-
 
 def backup_menu():
     """Timed backup menu.
